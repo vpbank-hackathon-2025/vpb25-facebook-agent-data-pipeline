@@ -19,7 +19,8 @@ class BucketManager:
         required_buckets = [
             settings.staging_bucket,
             settings.silver_bucket,
-            settings.lakehouse_bucket
+            settings.lakehouse_bucket,
+            settings.crawled_bucket
         ]
         
         for bucket in required_buckets:

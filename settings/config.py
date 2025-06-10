@@ -25,10 +25,14 @@ class Settings():
     staging_bucket: str = os.getenv("STAGING_BUCKET")
     silver_bucket: str = os.getenv("SILVER_BUCKET")
     lakehouse_bucket: str = os.getenv("LAKEHOUSE_BUCKET")
+    crawled_bucket: str = os.getenv("CRAWLED_BUCKET", "crawled")
     
     # Processing Configuration
     batch_size: int = int(os.getenv("BATCH_SIZE"))
     max_file_size_mb: int = int(os.getenv("MAX_FILE_SIZE_MB"))
+    max_concurrent_processing: int = 5
+    delete_after_processing: bool = False
+    archive_after_processing: bool = True
     
     class Config:
         env_file = ".env"

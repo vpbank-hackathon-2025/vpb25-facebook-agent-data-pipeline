@@ -4,7 +4,7 @@ import pytz
 import traceback
 from datetime import datetime
 
-from core.config import settings
+from settings.config import settings
 
 
 def exception_logging(exctype, value, tb):

@@ -13,8 +13,8 @@ from pyiceberg.types import (
     ListType, NestedField
 )
 
-from core.config import settings
-from models.schemas import PDFDocument, TXTDocument
+from settings.config import settings
+from api.models.schemas import PDFDocument, TXTDocument
 from logs import logger
 
 

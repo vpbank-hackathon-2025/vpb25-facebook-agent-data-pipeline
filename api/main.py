@@ -7,9 +7,9 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
 # Add the app directory to Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
-from core.config import settings
+from settings.config import settings
 from api.endpoints import files, lakehouse, process, status
 from logs import logger
 

@@ -1,5 +1,6 @@
 import asyncio
 from typing import List, Dict, Any
+from fastapi import HTTPException, status
 
 from lakehouse.processors.document_processor import DocumentProcessor
 from lakehouse.storage.file_manager import file_manager
@@ -42,7 +43,10 @@ class BatchProcessor:
             
         except Exception as e:
             logger.error(f"Error in batch processing: {e}")
-            raise ProcessingError(f"Batch processing failed: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Batch processing failed: {e}"
+            )
     
     async def process_pdf_files(self) -> Dict[str, Any]:
         """Process only PDF files"""
@@ -61,7 +65,10 @@ class BatchProcessor:
             
         except Exception as e:
             logger.error(f"Error processing PDF batch: {e}")
-            raise ProcessingError(f"PDF batch processing failed: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"PDF batch processing failed: {e}"
+            )
     
     async def process_txt_files(self) -> Dict[str, Any]:
         """Process only TXT files"""
@@ -80,7 +87,10 @@ class BatchProcessor:
             
         except Exception as e:
             logger.error(f"Error processing TXT batch: {e}")
-            raise ProcessingError(f"TXT batch processing failed: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"TXT batch processing failed: {e}"
+            )
     
     async def _process_files_batch(self, files: List[Dict[str, Any]], 
                                   file_type: str) -> List[ProcessingStatus]:
