@@ -5,6 +5,7 @@ from lakehouse.storage.file_manager import file_manager
 from logs import logger
 from settings.config import settings
 from api.dependencies import get_file_validator
+from utils.helper import build_api_response
 
 router = APIRouter(prefix="/files", tags=["files"])
 
@@ -19,7 +20,7 @@ async def get_all_pdf_files():
             include_metadata=True
         )
         
-        return GenericResponseModel(
+        res = GenericResponseModel(
             message="PDF files retrieved successfully",
             status_code=status.HTTP_200_OK,
             data={
@@ -27,12 +28,15 @@ async def get_all_pdf_files():
                 "total_count": len(files)
             }
         )
-        
+        return build_api_response(res)
     except Exception as e:
         logger.error(f"Error listing PDF files: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve PDF files"
+        return build_api_response(
+            GenericResponseModel(
+                message="Failed to retrieve PDF files",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=True
+            )
         )
 
 
@@ -57,9 +61,12 @@ async def get_all_txt_files():
         
     except Exception as e:
         logger.error(f"Error listing TXT files: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve TXT files"
+        return build_api_response(
+            GenericResponseModel(
+                message="Failed to retrieve TXT files",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=True
+            )
         )
 
 
