@@ -3,6 +3,7 @@ import os
 class Settings():
     # Application
     app_name: str = os.getenv("APP_NAME", "ABC App")
+    app_port: int = int(os.getenv("APP_PORT", 8000))
     debug_env = os.getenv("DEBUG", "false").lower()
     debug: bool = False if debug_env == "false" else True
     log_level: str = os.getenv("LOG_LEVEL")
@@ -32,11 +33,7 @@ class Settings():
     max_file_size_mb: int = int(os.getenv("MAX_FILE_SIZE_MB"))
     max_concurrent_processing: int = 5
     delete_after_processing: bool = False
-    archive_after_processing: bool = True
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    archive_after_processing: bool = False
 
 
 settings = Settings()

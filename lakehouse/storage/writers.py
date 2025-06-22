@@ -69,21 +69,19 @@ class IcebergWriter:
     def _prepare_pdf_data(self, documents: List[PDFDocument]) -> dict:
         """Prepare PDF documents data for insertion"""
         data_dict = {
-            'file_id': [], 'datetime': [], 'upload_datetime': [],
+            'file_id': [], 'upload_datetime': [],
             'title': [], 'content': [], 'source_file': [],
-            'file_size': [], 'content_hash': [], 'page_count': [],
+            'file_size': [], 'page_count': [],
             'version': []
         }
         
         for doc in documents:
             data_dict['file_id'].append(doc.file_id)
-            data_dict['datetime'].append(doc.datetime)
             data_dict['upload_datetime'].append(doc.upload_datetime)
             data_dict['title'].append(doc.title)
             data_dict['content'].append(doc.content)
             data_dict['source_file'].append(doc.source_file)
             data_dict['file_size'].append(doc.file_size)
-            data_dict['content_hash'].append(doc.content_hash)
             data_dict['page_count'].append(doc.page_count)
             data_dict['version'].append(doc.version)
         
@@ -92,15 +90,14 @@ class IcebergWriter:
     def _prepare_txt_data(self, documents: List[TXTDocument]) -> dict:
         """Prepare TXT documents data for insertion"""
         data_dict = {
-            'file_id': [], 'datetime': [], 'upload_datetime': [],
+            'file_id': [], 'upload_datetime': [],
             'title': [], 'content': [], 'source_file': [],
-            'source_link': [], 'file_size': [], 'content_hash': [],
+            'source_link': [], 'file_size': [],
             'version': []
         }
         
         for doc in documents:
             data_dict['file_id'].append(doc.file_id)
-            data_dict['datetime'].append(doc.datetime)
             data_dict['upload_datetime'].append(doc.upload_datetime)
             data_dict['title'].append(doc.title)
             data_dict['content'].append(doc.content)
@@ -116,13 +113,11 @@ class IcebergWriter:
         """Get PyArrow schema for PDF documents"""
         return pa.schema([
             pa.field('file_id', pa.string(), nullable=False),
-            pa.field('datetime', pa.timestamp('us'), nullable=False),
             pa.field('upload_datetime', pa.timestamp('us'), nullable=False),
             pa.field('title', pa.string(), nullable=False),
             pa.field('content', pa.string(), nullable=False),
             pa.field('source_file', pa.string(), nullable=False),
             pa.field('file_size', pa.int64(), nullable=False),
-            pa.field('content_hash', pa.string(), nullable=False),
             pa.field('page_count', pa.int32(), nullable=True),
             pa.field('version', pa.int32(), nullable=False)
         ])
@@ -131,14 +126,12 @@ class IcebergWriter:
         """Get PyArrow schema for TXT documents"""
         return pa.schema([
             pa.field('file_id', pa.string(), nullable=False),
-            pa.field('datetime', pa.timestamp('us'), nullable=False),
             pa.field('upload_datetime', pa.timestamp('us'), nullable=False),
             pa.field('title', pa.string(), nullable=False),
             pa.field('content', pa.string(), nullable=False),
             pa.field('source_file', pa.string(), nullable=False),
             pa.field('source_link', pa.string(), nullable=True),
             pa.field('file_size', pa.int64(), nullable=False),
-            pa.field('content_hash', pa.string(), nullable=False),
             pa.field('version', pa.int32(), nullable=False)
         ])
 

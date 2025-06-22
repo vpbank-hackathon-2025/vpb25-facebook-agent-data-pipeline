@@ -1,5 +1,6 @@
 import sys
 import os
+import shutil
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,12 +14,43 @@ from settings.config import settings
 from api.endpoints import files, lakehouse, process, status
 from logs import logger
 
+# register startup and shutdown using lifespan Events
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup event
+    logger.info("Startup Event Triggered")
+    logger.info(f"Starting {settings.app_name} Application")
+    logger.info(f"Debug mode: {settings.debug}")
+    logger.info(f"MinIO endpoint: {settings.minio_endpoint}")
+    logger.info(f"Iceberg catalog URI: {settings.iceberg_catalog_uri}")
+    
+    # check temp folder
+    if not os.path.exists("temp"):
+        logger.info("Creating temp folder")
+        os.makedirs("temp")
+    else:
+        logger.info("Temp folder already exists")
+    
+    yield
+
+    # shutdown event
+    logger.info("Shutdown Event Triggered")
+    logger.info(f"Shutting down {settings.app_name} Application")
+
+    # delete temp folder
+    if os.path.exists("temp"):
+        logger.info("Deleting temp folder")
+        shutil.rmtree("temp")
+    else:
+        logger.info("Temp folder already deleted")
+
 # Create FastAPI app
 app = FastAPI(
     title=settings.app_name,
-    description="A document management system using Apache Iceberg lakehouse architecture",
+    description=f"{settings.app_name} API service",
     version="1.0.0",
-    debug=settings.debug
+    debug=settings.debug,
+    lifespan=lifespan
 )
 
 # Add CORS middleware
@@ -35,22 +67,6 @@ app.include_router(files.router, prefix="/api")
 app.include_router(lakehouse.router, prefix="/api")
 app.include_router(process.router, prefix="/api")
 app.include_router(status.router)
-
-# register startup and shutdown using lifespan Events
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # startup event
-    logger.info("Startup Event Triggered")
-    logger.info(f"Starting {settings.app_name} Application")
-    logger.info(f"Debug mode: {settings.debug}")
-    logger.info(f"MinIO endpoint: {settings.minio_endpoint}")
-    logger.info(f"Iceberg catalog URI: {settings.iceberg_catalog_uri}")
-    
-    yield
-
-    # shutdown event
-    logger.info("Shutdown Event Triggered")
-    logger.info(f"Shutting down {settings.app_name} Application")
     
 
 @app.exception_handler(Exception)
@@ -77,7 +93,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
+        port=settings.app_port,
         reload=settings.debug,
         log_level=settings.log_level.lower()
     )

@@ -10,25 +10,25 @@ from api.dependencies import get_batch_processor
 router = APIRouter(prefix="/process", tags=["process"])
 
 
-@router.post("/batch", response_model=GenericResponseModel)
-async def process_batch():
-    """Process all files in staging bucket and move to lakehouse"""
-    try:
-        batch_processor = get_batch_processor()
-        result = await batch_processor.process_all_files()
+# @router.post("/batch", response_model=GenericResponseModel)
+# async def process_batch():
+#     """Process all files in staging bucket and move to lakehouse"""
+#     try:
+#         batch_processor = get_batch_processor()
+#         result = await batch_processor.process_all_files()
         
-        return GenericResponseModel(
-            message="Batch processed successfully",
-            status_code=status.HTTP_200_OK,
-            data=result
-        )
+#         return GenericResponseModel(
+#             message="Batch processed successfully",
+#             status_code=status.HTTP_200_OK,
+#             data=result
+#         )
         
-    except Exception as e:
-        logger.error(f"Error processing batch: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to process batch files"
-        )
+#     except Exception as e:
+#         logger.error(f"Error processing batch: {e}")
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail="Failed to process batch files"
+#         )
 
 
 @router.post("/batch/pdf", response_model=GenericResponseModel)

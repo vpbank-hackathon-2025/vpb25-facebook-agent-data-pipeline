@@ -1,4 +1,5 @@
 import io
+import os
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from minio.error import S3Error
@@ -36,6 +37,17 @@ class FileManager:
             logger.error(f"Error uploading file {object_name}: {e}")
             raise Exception(f"Failed to upload {object_name}: {e}")
     
+    def upload_file_from_local(self, bucket: str, object_name: str, local_path: str) -> bool:
+        """Upload file from local path to MinIO"""
+        try:
+            with open(local_path, "rb") as f:
+                result = self.client.put_object(bucket, object_name, f, length=os.path.getsize(local_path))
+            return result
+    
+        except S3Error as e:
+            logger.error(f"Error uploading file {object_name}: {e}")
+            raise Exception(f"Failed to upload {object_name}: {e}")
+    
     def download_file(self, bucket: str, object_name: str) -> bytes:
         """Download file from MinIO"""
         try:
@@ -44,6 +56,16 @@ class FileManager:
             response.close()
             response.release_conn()
             return data
+            
+        except S3Error as e:
+            logger.error(f"Error downloading file {object_name}: {e}")
+            raise Exception(f"Failed to download {object_name}: {e}")
+    
+    def download_file_to_local(self, bucket: str, object_name: str, local_path: str) -> bool:
+        """Download file from MinIO to local path"""
+        try:
+            self.client.fget_object(bucket, object_name, local_path)
+            return True
             
         except S3Error as e:
             logger.error(f"Error downloading file {object_name}: {e}")

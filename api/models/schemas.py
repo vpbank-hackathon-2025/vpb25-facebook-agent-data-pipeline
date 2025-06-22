@@ -10,20 +10,16 @@ class DocumentBase(BaseModel):
 
 class PDFDocument(DocumentBase):
     file_id: str
-    datetime: datetime
     upload_datetime: datetime
     file_size: int
-    content_hash: str
     page_count: Optional[int] = None
     version: int = 1
 
 
 class TXTDocument(DocumentBase):
     file_id: str
-    datetime: datetime
     upload_datetime: datetime
     file_size: int
-    content_hash: str
     source_link: Optional[str] = None
     version: int = 1
 
