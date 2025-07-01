@@ -1,6 +1,7 @@
 import sys
 import os
 import shutil
+import glob
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,7 +41,12 @@ async def lifespan(app: FastAPI):
     # delete temp folder
     if os.path.exists("temp"):
         logger.info("Deleting temp folder")
-        shutil.rmtree("temp")
+        folder_path = "temp"
+        for item in glob.glob(os.path.join(folder_path, "*")):
+            if os.path.isfile(item):
+                os.remove(item)
+            elif os.path.isdir(item):
+                shutil.rmtree(item)
     else:
         logger.info("Temp folder already deleted")
 
@@ -56,7 +62,7 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -11,6 +11,10 @@ class DocumentBase(BaseModel):
 class PDFDocument(DocumentBase):
     file_id: str
     upload_datetime: datetime
+    title: str
+    summarize_details: Optional[str] = None
+    content: str
+    source_file: str
     file_size: int
     page_count: Optional[int] = None
     version: int = 1

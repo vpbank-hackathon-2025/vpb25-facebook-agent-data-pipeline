@@ -5,9 +5,11 @@ from typing import List, Dict, Any
 from datetime import datetime
 
 from logs import logger
+from settings.config import settings
+from utils.helper import get_current_vietnam_datetime
 
 class QdrantConnector:
-    def __init__(self, qdrant_url: str, qdrant_api_key: str = None, collection_name: str = "agent_documents"):
+    def __init__(self,collection_name: str = "agent_documents"):
         """
         Initialize Qdrant connection
         
@@ -17,10 +19,10 @@ class QdrantConnector:
             collection_name: Name of the collection to use
         """
         self.qdrant_client = QdrantClient(
-            url=qdrant_url,
-            api_key=qdrant_api_key
+            url=settings.qdrant_url,
+            api_key=settings.qdrant_api_key
         )
-        self.collection_name = collection_name
+        self.collection_name = settings.qdrant_collection_name
         
         # Initialize collection if not exists
         self._create_collection_if_not_exists()
@@ -77,8 +79,7 @@ class QdrantConnector:
                 payload = {
                     "text": chunk,
                     "chunk_index": i,
-                    "source_file": metadata.get("source_file", ""),
-                    "upload_timestamp": datetime.now().isoformat(),
+                    "upload_timestamp": get_current_vietnam_datetime().isoformat(),
                     "text_length": len(chunk),
                     **metadata
                 }
@@ -199,3 +200,6 @@ class QdrantConnector:
         except Exception as e:
             logger.error(f"Error deleting collection: {e}")
             return False
+
+# Singleton instance
+qdrant_connector = QdrantConnector()

@@ -138,3 +138,6 @@ knowledge/
 nohup.out
 
 debug/
+
+# Project specific files
+temp/

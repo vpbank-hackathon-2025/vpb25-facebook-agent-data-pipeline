@@ -1,12 +1,17 @@
 import pytz
 import http
 import uuid
+import os
+import sys
 
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from datetime import datetime
 
-from models.base import GenericResponseModel
+# Add the app directory to Python path
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+
+from api.models.base import GenericResponseModel
 from logs import logger
 
 def get_vietnam_timezone():

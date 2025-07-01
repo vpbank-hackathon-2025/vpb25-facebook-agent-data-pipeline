@@ -2,11 +2,13 @@ from typing import Optional
 
 from lakehouse.storage.file_manager import file_manager
 from lakehouse.storage.writers import iceberg_writer
-from lakehouse.processors.extractors import PDFExtractor, TXTExtractor
+from lakehouse.extractor.txt_extractor import TXTExtractor
+from lakehouse.extractor.pdf_extractor import PDFExtractor
 from settings.config import settings
 from logs import logger
 from utils.helper import get_current_vietnam_timestamp
 from api.models.schemas import ProcessingStatus
+from lakehouse.vectorize.vectorize_pipeline import VectorizePipeline
 
 
 class DocumentProcessor:
@@ -21,12 +23,23 @@ class DocumentProcessor:
         try:
             # Extract and create document record
             upload_datetime = get_current_vietnam_timestamp()
-            document = self.pdf_extractor.create_document_record(file_path, upload_datetime)
-            
+            logger.info(f"Processing PDF file: {file_path}")
+            pdf_extractor_results = self.pdf_extractor.create_document_record(file_path, upload_datetime)
+            document = pdf_extractor_results.get("document")
+            extracted_content = pdf_extractor_results.get("extracted_content")
+
             # Insert into Iceberg table
-            success = iceberg_writer.insert_pdf_documents([document])
+            logger.info(f"Inserting PDF document into Iceberg: {document.source_file}")
+            iceberg_success = iceberg_writer.insert_pdf_documents([document])
+
+            # Upload to Qdrant
+            if iceberg_success:
+                logger.info(f"Vectorizing PDF content for file: {document.source_file}")
+                vectorize_pipeline = VectorizePipeline()
+                # vectorize_results = vectorize_pipeline.process_file_list([document.content])
+                vectorize_results = vectorize_pipeline.process_summary_details_file(document.summarize_details, document.content, extracted_content)
             
-            if success:
+            if iceberg_success and vectorize_results:
                 # Optionally move to processed folder or delete
                 await self._post_process_file(file_path, "pdf")
                 

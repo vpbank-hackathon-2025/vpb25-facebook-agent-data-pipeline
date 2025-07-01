@@ -1,8 +1,11 @@
-import hashlib
 import os
 import uuid
+import sys
 
-# from docling.document_converter import DocumentConverter
+from google.genai import types
+import pathlib
+import httpx
+
 from docling.datamodel.accelerator_options import AcceleratorDevice, AcceleratorOptions
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import (
@@ -12,12 +15,15 @@ from docling.datamodel.pipeline_options import (
 from docling.document_converter import DocumentConverter, PdfFormatOption
 
 from datetime import datetime
-from typing import Union
+
+# Add the app directory to Python path
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 
 from logs import logger
-from api.models.schemas import PDFDocument, TXTDocument
+from api.models.schemas import PDFDocument
 from lakehouse.storage.file_manager import file_manager
 from settings.config import settings
+from ai_services.gemini_client import GeminiClientService
 
 class PDFExtractor:
     """Handles PDF content extraction and document creation"""
@@ -36,8 +42,16 @@ class PDFExtractor:
             file_manager.download_file_to_local(settings.staging_bucket, file_path, local_path)
             file_info = file_manager.get_file_info(settings.staging_bucket, file_path)
 
+            # Summarize PDF content using Gemini
+            try:
+                logger.info(f"Summarizing PDF content using Gemini for file: {filename}")
+                summarize_details = self.summarize_details_pdf_content_using_gemini(local_path)
+            except Exception as e:
+                logger.error(f"Error summarizing PDF content: {e}")
+                summarize_details = None
+
             # Extract content from PDF file
-            extracted_content = self._extract_pdf_content(local_path)
+            extracted_content = self.extract_pdf_content_using_docling(local_path)
 
             local_md_path = f"temp/{extracted_content['doc_name']}.md"
             # save content to file
@@ -60,30 +74,50 @@ class PDFExtractor:
                 file_id=str(uuid.uuid4().hex),
                 upload_datetime=upload_datetime,
                 title=self._extract_title_from_filename(filename),
+                summarize_details=summarize_details,
                 content=f"{result.bucket_name}/{result.object_name}",
                 source_file=filename,
                 file_size=file_info["size"],
                 page_count=extracted_content.get("page_count", 1),
                 version=1,
             )
-            
-            return document
-            
+
+            return {"document": document, "extracted_content": extracted_content}
+
         except Exception as e:
             logger.error(f"Error creating PDF document record: {e}")
             raise Exception(f"Failed to create PDF document: {e}")
+
+    def summarize_details_pdf_content_using_gemini(self, file_path: str) -> dict:
+        """Summarize text content from PDF using Gemini"""
+        try:
+            client = GeminiClientService().gemini_client
+            filepath = pathlib.Path(file_path)
+
+            prompt = "I am working on RAG system, summarize the file for easy search later. Response only content with same language as file, not include 'Here is a summary of the provided document, structured for easy retrieval in a RAG system:' or something like that. Just response content only."
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[
+                    types.Part.from_bytes(
+                        data=filepath.read_bytes(),
+                        mime_type='application/pdf',
+                    ),
+                    prompt
+                ]
+            )
+            return response.text
+        except Exception as e:
+            logger.error(f"Error extracting PDF content: {e}")
+            raise Exception(f"PDF extraction failed: {e}")
     
-    def _extract_pdf_content(self, local_path: str) -> dict:
+    def extract_pdf_content_using_docling(self, local_path: str) -> dict:
         """Extract text content from PDF"""
         try:
-            # converter = DocumentConverter()
             pipeline_options = PdfPipelineOptions()
             pipeline_options.do_ocr = True
             pipeline_options.do_table_structure = True
             pipeline_options.table_structure_options.do_cell_matching = True
             pipeline_options.ocr_options.lang = ["vi"]
-
-            ocr_options = TesseractCliOcrOptions(lang=["auto"])
             
             pipeline_options.accelerator_options = AcceleratorOptions(
                 num_threads=4, device=AcceleratorDevice.AUTO
@@ -116,60 +150,8 @@ class PDFExtractor:
         title = title.replace('_', ' ').replace('-', ' ')
         return title.title()
 
-
-class TXTExtractor:
-    """Handles TXT content extraction and document creation"""
-    
-    def create_document_record(self, filename: str, file_content: bytes,
-                             upload_datetime: datetime) -> TXTDocument:
-        """Create TXT document record from file content"""
-        try:
-            # Extract content
-            text_content = self._extract_txt_content(file_content)
-            
-            # Calculate content hash
-            content_hash = hashlib.md5(file_content).hexdigest()
-            
-            # Create document record
-            document = TXTDocument(
-                file_id=str(uuid.uuid4()),
-                datetime=upload_datetime,
-                upload_datetime=upload_datetime,
-                title=self._extract_title_from_filename(filename),
-                content=text_content,
-                source_file=filename,
-                source_link=None,  # Could be populated from metadata
-                file_size=len(file_content),
-                content_hash=content_hash,
-                version=1
-            )
-            
-            return document
-            
-        except Exception as e:
-            logger.error(f"Error creating TXT document record: {e}")
-            raise Exception(f"Failed to create TXT document: {e}")
-    
-    def _extract_txt_content(self, file_content: bytes) -> str:
-        """Extract text content from TXT file"""
-        try:
-            # Try different encodings
-            for encoding in ['utf-8', 'utf-16', 'latin-1', 'cp1252']:
-                try:
-                    return file_content.decode(encoding)
-                except UnicodeDecodeError:
-                    continue
-            
-            # If all encodings fail, use utf-8 with error handling
-            return file_content.decode('utf-8', errors='replace')
-            
-        except Exception as e:
-            logger.error(f"Error extracting TXT content: {e}")
-            raise Exception(f"TXT extraction failed: {e}")
-    
-    def _extract_title_from_filename(self, filename: str) -> str:
-        """Extract title from filename"""
-        # Remove extension and replace underscores/hyphens with spaces
-        title = filename.rsplit('.', 1)[0]
-        title = title.replace('_', ' ').replace('-', ' ')
-        return title.title()
+if __name__ == "__main__":
+    # Example usage
+    extractor = PDFExtractor()
+    summarize_details = extractor.summarize_details_pdf_content_using_gemini("temp/tnc-shopee-032023.pdf")
+    print(summarize_details)

@@ -70,7 +70,7 @@ class IcebergWriter:
         """Prepare PDF documents data for insertion"""
         data_dict = {
             'file_id': [], 'upload_datetime': [],
-            'title': [], 'content': [], 'source_file': [],
+            'title': [], 'summarize_details': [], 'content': [], 'source_file': [],
             'file_size': [], 'page_count': [],
             'version': []
         }
@@ -79,6 +79,7 @@ class IcebergWriter:
             data_dict['file_id'].append(doc.file_id)
             data_dict['upload_datetime'].append(doc.upload_datetime)
             data_dict['title'].append(doc.title)
+            data_dict['summarize_details'].append(doc.summarize_details)
             data_dict['content'].append(doc.content)
             data_dict['source_file'].append(doc.source_file)
             data_dict['file_size'].append(doc.file_size)
@@ -115,6 +116,7 @@ class IcebergWriter:
             pa.field('file_id', pa.string(), nullable=False),
             pa.field('upload_datetime', pa.timestamp('us'), nullable=False),
             pa.field('title', pa.string(), nullable=False),
+            pa.field('summarize_details', pa.string(), nullable=True),
             pa.field('content', pa.string(), nullable=False),
             pa.field('source_file', pa.string(), nullable=False),
             pa.field('file_size', pa.int64(), nullable=False),

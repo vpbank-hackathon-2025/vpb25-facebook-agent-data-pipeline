@@ -29,11 +29,20 @@ class Settings():
     crawled_bucket: str = os.getenv("CRAWLED_BUCKET", "crawled")
     
     # Processing Configuration
-    batch_size: int = int(os.getenv("BATCH_SIZE"))
-    max_file_size_mb: int = int(os.getenv("MAX_FILE_SIZE_MB"))
+    batch_size: int = int(os.getenv("BATCH_SIZE", "100"))
+    max_file_size_mb: int = int(os.getenv("MAX_FILE_SIZE_MB", "50"))
     max_concurrent_processing: int = 5
     delete_after_processing: bool = False
-    archive_after_processing: bool = False
+    # Move to processed folder
+    archive_after_processing: bool = True
+    
+    # Gemini Configuration
+    gemini_api_key: str = os.getenv("GEMINI_API_KEY")
+    
+    # Vector Database Configuration
+    qdrant_url: str = os.getenv("QDRANT_URL", "http://localhost:6333")
+    qdrant_api_key: str = os.getenv("QDRANT_API_KEY")
+    qdrant_collection_name = os.getenv("QDRANT_COLLECTION_NAME")
 
 
 settings = Settings()
