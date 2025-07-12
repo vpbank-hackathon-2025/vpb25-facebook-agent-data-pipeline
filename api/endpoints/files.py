@@ -158,6 +158,8 @@ async def upload_pdf(file: UploadFile = File(...)):
                 "upload_source": "api"
             }
         )
+
+        # Process subprocess => ban API 
         
         if not success:
             raise HTTPException(

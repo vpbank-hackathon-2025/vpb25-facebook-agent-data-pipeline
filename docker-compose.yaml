@@ -76,6 +76,58 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+  
+  # FastAPI Application
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: vpb-lakehouse-app
+    networks:
+      - vpb25_lakehouse
+    environment:
+      MINIO_HOST: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_SECURE: false
+
+      # Iceberg Configuration
+      ICEBERG_CATALOG_URI: http://iceberg-rest:8181
+      ICEBERG_NAMESPACE: agent_lakehouse
+      PYICEBERG_DOWNCAST_NS_TIMESTAMP_TO_US_ON_WRITE: true
+      PYICEBERG_CATALOG__DEFAULT__URI: http://iceberg-rest:8181
+
+      # Qdrant Configuration
+      QDRANT_API_KEY: ${QDRANT_API_KEY}
+      QDRANT_URL: ${QDRANT_URL}
+      QDRANT_COLLECTION_NAME: ${QDRANT_COLLECTION_NAME}
+
+      # Gemini Configuration
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+      # Application Configuration
+      APP_NAME: vpb25-lakehouse
+      APP_PORT: 8000
+      DEBUG: false
+      LOG_LEVEL: INFO
+
+      # Buckets
+      STAGING_BUCKET: staging
+      SILVER_BUCKET: silver
+      LAKEHOUSE_BUCKET: lakehouse
+      CRAWLED_BUCKET: crawled
+
+      # Processing Configuration
+      BATCH_SIZE: 100
+      MAX_FILE_SIZE_MB: 50
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - minio-init
+      - iceberg-rest
 
 volumes:
   vpb25_minio_data:
@@ -83,24 +135,3 @@ volumes:
 networks:
   vpb25_lakehouse:
     driver: bridge
-
-  # # FastAPI Application
-  # app:
-  #   build:
-  #     context: .
-  #     dockerfile: docker/Dockerfile
-  #   container_name: vpb-lakehouse-app
-  #   environment:
-  #     - MINIO_ENDPOINT=minio:9000
-  #     - MINIO_ACCESS_KEY=minioadmin
-  #     - MINIO_SECRET_KEY=minioadmin
-  #     - ICEBERG_CATALOG_URI=http://iceberg-rest:8181
-  #     - PYTHONPATH=/app
-  #   ports:
-  #     - "8000:8000"
-  #   volumes:
-  #     - ./app:/app
-  #   depends_on:
-  #     - minio-init
-  #     - iceberg-rest
-  #   command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload

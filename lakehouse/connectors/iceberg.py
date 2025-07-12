@@ -20,14 +20,14 @@ class IcebergConnector:
         """Initialize Iceberg catalog with configuration"""
         try:
             catalog_config = {
-                'uri': "http://localhost:8181",
+                'uri': settings.iceberg_catalog_uri,
                 "type": "rest",
                 # Client-side S3 configuration
-                'warehouse': 's3://lakehouse/',
+                'warehouse': f's3://{settings.lakehouse_bucket}/',
                 "s3.region": "us-east-1",
-                's3.endpoint': "http://localhost:9000",
-                's3.access-key-id': "minioadmin",
-                's3.secret-access-key': "minioadmin",
+                's3.endpoint': settings.minio_endpoint_url,
+                's3.access-key-id': settings.minio_access_key,
+                's3.secret-access-key': settings.minio_secret_key,
                 's3.path-style-access': 'true',
                 's3.signer-type': 'S3SignerType',
                 's3.disable-bucket-location-inference': 'true'

@@ -3,7 +3,7 @@ import http
 from fastapi import APIRouter
 
 from logs import logger
-from models.base import GenericResponseModel
+from api.models.base import GenericResponseModel
 from utils.helper import build_api_response, get_current_vietnam_datetime
 
 router = APIRouter(tags=["status"])

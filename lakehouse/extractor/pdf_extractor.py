@@ -94,7 +94,10 @@ class PDFExtractor:
             client = GeminiClientService().gemini_client
             filepath = pathlib.Path(file_path)
 
-            prompt = "I am working on RAG system, summarize the file for easy search later. Response only content with same language as file, not include 'Here is a summary of the provided document, structured for easy retrieval in a RAG system:' or something like that. Just response content only."
+            prompt = """I am working on RAG system, summarize the file for easy search later. 
+            Response only content with same language as file and # markdown format, not include 'Here is a summary of the provided document, structured for easy retrieval in a RAG system:' or something like that. 
+            Just response content only."""
+
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=[
@@ -153,5 +156,5 @@ class PDFExtractor:
 if __name__ == "__main__":
     # Example usage
     extractor = PDFExtractor()
-    summarize_details = extractor.summarize_details_pdf_content_using_gemini("temp/tnc-shopee-032023.pdf")
+    summarize_details = extractor.summarize_details_pdf_content_using_gemini("temp/website-the-le-uu-dai-tinh-nang-danh-cho-chu-the-tin-dung-vpbank-z-jcb.pdf")
     print(summarize_details)
